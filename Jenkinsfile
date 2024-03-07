@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        DOCKERHUB_USERNAME = credentials('DOCKERHUB_USERNAME')
+        DOCKERHUB_PASSWORD = credentials('DOCKERHUB_PASSWORD')
+    }
     stages {
         stage("checkout") {
             steps {
@@ -29,18 +33,10 @@ pipeline {
         stage('Push-Docker-Hub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'docker_cred', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
-                        try {
-                            sh "docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD"
-                            sh "docker tag my-node-app:1.0 ayushrudra/my-node-app:1.0"
-                            sh "docker push ayushrudra/my-node-app:1.0"
-                        } catch (Exception e) {
-                            // Handle any errors here
-                            echo "Error occurred: ${e.message}"
-                            currentBuild.result = 'FAILURE'
-                        } finally {
-                            sh 'docker logout'
-                        }
+                    withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CREDENTIALS_ID', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        sh "docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD"
+                        sh "docker tag my-node-app:1.0 ayushrudra/my-node-app:1.0"
+                        sh "docker push ayushrudra/my-node-app:1.0"
                     }
                 }
             }
