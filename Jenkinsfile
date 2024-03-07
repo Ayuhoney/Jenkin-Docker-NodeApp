@@ -10,7 +10,7 @@ pipeline {
 
         stage("Test"){
             steps{
-                sh 'sudo -S apt install npm'
+                sh 'sudo npm install'
                 sh 'npm test'
             }
         }
