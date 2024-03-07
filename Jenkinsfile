@@ -27,13 +27,22 @@ pipeline {
         }
         stage('Push-Docker-Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker_cred', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
-                    sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
-                    sh 'docker tag my-node-app:1.0 ayushrudra/my-node-app:1.0'
-                    sh 'docker push ayushrudra/my-node-app:1.0'
-                    sh 'docker logout'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker_cred', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
+                        try {
+                            sh "docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD"
+                            sh "docker tag my-node-app:1.0 ayushrudra/my-node-app:1.0"
+                            sh "docker push ayushrudra/my-node-app:1.0"
+                        } catch (Exception e) {
+                            // Handle any errors here
+                            echo "Error occurred: ${e.message}"
+                            currentBuild.result = 'FAILURE'
+                        } finally {
+                            sh 'docker logout'
+                        }
+                    }
                 }
             }
-        }
-    }
+       }
+
 }
